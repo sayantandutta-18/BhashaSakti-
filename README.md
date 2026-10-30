@@ -1,214 +1,353 @@
-# BhashaSandhi (भाषासंधि / ভাষাসন্ধি / ଭାଷାସନ୍ଧି)
 
-> **High-speed, end-to-end open-weight multilingual voice assistant for Indic languages (Hindi, Bengali, and Odia) with real-time streaming, multimodal vision, and tool execution.**
+::: {align="center"} # BhashaSakti ### भाषाशक्ति · ভাষাশক্তি · ଭାଷାଶକ୍ତି **A multilingual, voice-first AI assistant for Indic languages.** Speak naturally in Hindi, Bengali, or Odia. Get spoken answers, ask questions about images, check live information, and interact through text---all through a mobile-first web experience. [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) [![Deployed on DigitalOcean](https://img.shields.io/badge/Deployed%20on-DigitalOcean-blue?logo=digitalocean)](DEPLOY.md) [![STT: Whisper large-v3](https://img.shields.io/badge/STT-Whisper%20large--v3-orange)](https://huggingface.co/openai/whisper-large-v3) [![LLM: Gemma 4](https://img.shields.io/badge/LLM-Gemma%204-blue)](https://ai.google.dev/gemma) [![TTS: Meta MMS-TTS](https://img.shields.io/badge/TTS-Meta%20MMS--TTS-green)](https://huggingface.co/facebook/mms-tts-hin) :::
+Table of Contents
+Overview
+Live Demo
+Key Features
+Supported Languages
+System Architecture
+AI Models and Technologies
+How Gemma 4 Is Used
+Getting Started
+Prerequisites
+Local Setup
+Run with Docker
+Testing
+API Reference
+Known Limitations and Future
+Work
+Team and Credits
+License
+🌐 Overview
+BhashaSakti is a multilingual, voice-first AI assistant designed to
+make AI more accessible to speakers of Indian languages. It supports
+conversational interactions in Hindi, Bengali, and Odia, with
+English available as a fallback for testing and debugging.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![DigitalOcean App Platform](https://img.shields.io/badge/Deployed%20on-DigitalOcean-blue?logo=digitalocean)](DEPLOY.md)
-[![Whisper large-v3](https://img.shields.io/badge/STT-Whisper%20large--v3-orange)](https://huggingface.co/openai/whisper-large-v3)
-[![Gemma 4](https://img.shields.io/badge/LLM-Gemma%204%20(Gemini%20API)-blue)](https://ai.google.dev/gemma)
-[![Meta MMS-TTS](https://img.shields.io/badge/TTS-Meta%20MMS--TTS-green)](https://huggingface.co/facebook/mms-tts-hin)
+Users can speak to the assistant, type a message, or upload a photograph
+and ask a question about it. The assistant can also handle grounded
+requests such as checking the weather, telling the current time, and
+answering questions from a curated FAQ knowledge base.
 
----
+The application combines speech recognition, language understanding,
+tool execution, multimodal image understanding, text-to-speech
+synthesis, and conversation history in one web application.
 
-## 🌐 Live Demo & Deployment
+What users can do
+Talk to the assistant in Hindi or Bengali and receive a spoken
+response.
+Enter text in supported Indic languages.
+Ask questions about an uploaded photograph.
+Request weather information and the current Indian Standard Time.
+Ask questions covered by the built-in FAQ knowledge base.
+Continue conversations with session-based history.
+Use the text interface when voice interaction is unavailable.
+🚀 Live Demo
+Live application:
+https://bhashasandhi-hack4haldia.ondigitalocean.app
+Health check: GET /health
+Deployment guide: `DEPLOY.md`
+Deployment note: The current live URL retains the previous
+bhashasandhi deployment slug. Update it if the application is
+redeployed under a new URL.
 
-- **Live URL:** `https://bhashasandhi-hack4haldia.ondigitalocean.app` *(Replace with deployed URL)*
-- **Health Check:** `GET /health`
-- **Target Prizes:**
-  1. 🏆 **Best Open-Source AI Project** (DigitalOcean / MLH + DEV)
-  2. 🌟 **Best Use of Gemma 4** (Gemma 4 via Gemini API with Multimodal Vision & Streaming)
+Hackathon focus
+Best Open-Source AI Project --- DigitalOcean / MLH + DEV
+Best Use of Gemma 4 --- Gemma 4 through Gemini API, including
+multimodal vision and streaming
+✨ Key Features
+Feature Description
 
-*(Note: The legacy Node starter `script.js` and `package.json` have been removed in favor of a clean, single-worker production Flask backend.)*
+Voice conversations Single-turn and multi-turn voice
+interactions
 
----
+Language detection Detects speech language through
+Whisper and text script through
+Unicode heuristics
 
-## 📖 What It Does
+Multimodal image input Upload or capture a photograph and
+ask questions about it
 
-**BhashaSandhi** bridges the linguistic divide across eastern and northern India by providing a conversational voice assistant that speaks and listens natively in **Hindi**, **Bengali**, and **Odia**. Users can speak naturally into their phone or browser, query live weather in Haldia, ask for current time, consult a grounded FAQ knowledge base, attach photographs for instant visual explanations, or interact via text fallback.
+Streaming responses Streams generated text to the chat
+interface using Server-Sent Events
+(SSE)
 
----
+Live weather Retrieves weather information
+through Open-Meteo
 
-## 🏗️ Architecture Diagram
+Current time Uses zoneinfo for Indian Standard
+Time (Asia/Kolkata)
 
-```mermaid
-flowchart TD
-    User([🎙️ User Voice / 📷 Photo / ⌨️ Text]) --> UI[Mobile-First Web Client / PWA]
-    
-    subgraph STT ["Speech-to-Text Layer"]
-        UI -->|Audio WebM/MP4| STT_Route["/api/transcribe or /api/chat"]
-        STT_Route --> Groq["Groq API: Whisper large-v3"]
-        STT_Route -.->|Fallback| FW["faster-whisper (local int8)"]
-    end
+Grounded FAQ Answers supported questions using
+faq.json
 
-    subgraph LLM ["Reasoning, Intent & Vision (Gemma 4)"]
-        Groq --> IntentRouter["Intent Router (services/llm.py)"]
-        IntentRouter -->|weather / time / faq| Tools["Tool Execution (Open-Meteo & ZoneInfo & FAQ)"]
-        IntentRouter -->|chat / vision| GemmaReply["Gemma 4 (gemma-4-26b-a4b-it)"]
-        Tools --> GemmaReply
-        UI -.->|Image Upload| GemmaReply
-    end
+Conversation history Stores turns in SQLite and provides
+recent context to the language
+model
 
-    subgraph Persistence ["Persistence Layer"]
-        GemmaReply <--> SQLite[(SQLite Database: data/team_j.db)]
-    end
+Progressive Web App Includes a service worker and
+browser speech-synthesis fallback
 
-    subgraph TTS ["Text-to-Speech Synthesis"]
-        GemmaReply -->|Streaming Text / Native Script| MMSTTS["Meta MMS-TTS (hin / ben / ory)"]
-        MMSTTS -.->|Fallback hi/bn| GTTS["gTTS Fallback"]
-    end
+Request protection Includes per-IP in-memory
+token-bucket rate limiting, a 10 MB
+audio limit, and temporary-file
+cleanup
+🇮🇳 Supported Languages
+The table below reflects the current implementation and its known
+limitations.
 
-    MMSTTS -->|16-bit PCM WAV / SSE Stream| Speaker([🔊 Spoken Audio Response])
-    Speaker --> UI
-```
+Language Code Voice Input Text Input Voice Output Notes
+(STT) (TTS)
 
----
+Hindi hi ✅ ✅ ✅ Whisper large-v3 and Meta
+MMS-TTS Hindi
 
-## 🤖 Open-Source / Open-Weight Models Used
+Bengali bn ✅ ✅ ✅ Whisper large-v3 and Meta
+MMS-TTS Bengali
 
-Every core step in the BhashaSandhi pipeline uses an open-weight model:
+Odia or ⚠️ ✅ ✅ Odia text is answered and
+Best-effort / spoken using
+unsupported facebook/mms-tts-ory;
+officially Whisper has no official
+Odia model
 
-| Role | Model | Parameters / Size | License | Where it Runs |
-| :--- | :--- | :--- | :--- | :--- |
-| **Speech to Text (STT)** | [Whisper large-v3](https://huggingface.co/openai/whisper-large-v3) | 1,550 Million | [MIT License](https://github.com/openai/whisper/blob/main/LICENSE) | Hosted open weights on Groq Cloud; fallback local [faster-whisper](https://github.com/SYSTRAN/faster-whisper) (Apache 2.0) |
-| **Understanding, Intent, Vision & Reply** | [Gemma 4](https://ai.google.dev/gemma) (`gemma-4-26b-a4b-it`, fallback `gemma-4-31b-it`) | 26 Billion / 31 Billion | [Gemma Terms of Use](https://ai.google.dev/gemma/terms) (Open-Weight Commercial/Research) | Google Gemini API with `google-genai` SDK |
-| **Text to Speech (TTS - Hindi)** | [facebook/mms-tts-hin](https://huggingface.co/facebook/mms-tts-hin) | ~150 Million (VITS) | [CC-BY-NC 4.0](https://huggingface.co/facebook/mms-tts-hin) | Local container CPU via PyTorch / Hugging Face Transformers |
-| **Text to Speech (TTS - Bengali)** | [facebook/mms-tts-ben](https://huggingface.co/facebook/mms-tts-ben) | ~150 Million (VITS) | [CC-BY-NC 4.0](https://huggingface.co/facebook/mms-tts-ben) | Local container CPU via PyTorch / Hugging Face Transformers |
-| **Text to Speech (TTS - Odia)** | [facebook/mms-tts-ory](https://huggingface.co/facebook/mms-tts-ory) | ~150 Million (VITS) | [CC-BY-NC 4.0](https://huggingface.co/facebook/mms-tts-ory) | Local container CPU via PyTorch / Hugging Face Transformers |
+English en ✅ ✅ ✅ Fallback for testing and
+debugging
+Odia speech recognition: Odia text input and speech output are
+supported. Whisper does not officially provide an Odia
+speech-recognition model, so Odia voice input is not claimed as fully
+supported.
 
----
+🏗️ System Architecture
+The application follows a pipeline that connects the web client to
+speech recognition, intent routing, AI response generation, tool
+execution, persistence, and speech synthesis.
 
-## 🌟 Gemma 4 Prize: How We Use Gemma 4 Through Gemini API
+Request flow
+The user sends audio, text, or an image from the web client.
+Audio is transcribed using Whisper large-v3 through Groq, with a
+local faster-whisper fallback.
+The intent router identifies whether the request needs a tool, a
+normal AI response, or image understanding.
+Weather, time, and FAQ requests use their corresponding grounded
+data sources.
+Gemma 4 generates the response and supports multimodal image
+understanding.
+Meta MMS-TTS synthesizes speech in the selected language.
+The application returns the response to the client and stores
+conversation turns in SQLite.
+🧠 AI Models and Technologies
+Models
+Pipeline role Model / Service Size License / Terms Execution
 
-All intelligence, multilingual translation, tool-grounding, intent routing, and vision understanding are handled by **Gemma 4** through the official `google-genai` SDK (`from google import genai`):
+Speech-to-Text Whisper large-v3 ~1.55B MIT Hosted through
+parameters Groq; local
+faster-whisper
+fallback (Apache
+2.0)
 
-1. **Strict Spoken-Style System Prompting**: Located in [`services/llm.py`](services/llm.py#L60). Gemma is constrained to output 1-3 spoken-style sentences in the target Indic script with zero markdown or emojis, preventing the downstream TTS engine from vocalizing punctuation noise.
-2. **Dynamic Model Discovery & Fallback**: At startup in [`services/llm.py`](services/llm.py#L38), the assistant queries `client.models.list()`, logs available models, and falls back gracefully from `gemma-4-26b-a4b-it` to `gemma-4-31b-it`.
-3. **Structured Intent Routing**: Handled in [`services/llm.py:route_intent()`](services/llm.py#L125). Gemma extracts JSON intents (`time`, `weather`, `faq`, `chat`) and city arguments defensively.
-4. **Direct Indic Translation**: Located in [`services/llm.py:translate()`](services/llm.py#L82) for zero-shot text translation without meta-commentary.
-5. **Multimodal Vision Understanding**: Handled in [`services/llm.py:reply()`](services/llm.py#L175). Uploaded images are resized to 1024px JPEG and passed as native image parts to Gemma 4, allowing users to ask questions about photos in Hindi or Bengali.
-6. **Real-time SSE Token Streaming**: Handled in [`services/llm.py:reply_stream()`](services/llm.py#L225) using `client.models.generate_content_stream`.
+Reasoning, Gemma 4 (gemma-4-26b-a4b-it; fallback gemma-4-31b-it) 26B / 31B Gemma Terms of Use Gemini API using
+intent, vision the google-genai
+and response SDK
 
----
+Hindi facebook/mms-tts-hin ~150M (VITS) CC-BY-NC 4.0 Local CPU using
+text-to-speech PyTorch /
+Transformers
 
-## 🇮🇳 Language Support Matrix
+Bengali facebook/mms-tts-ben ~150M (VITS) CC-BY-NC 4.0 Local CPU using
+text-to-speech PyTorch /
+Transformers
 
-We believe in complete honesty about model capabilities:
+Odia facebook/mms-tts-ory ~150M (VITS) CC-BY-NC 4.0 Local CPU using
+text-to-speech PyTorch /
+Transformers
+Model and licensing note: The project uses a combination of
+open-weight models and hosted APIs. Gemma is accessed through the
+Gemini API, and Whisper is hosted through Groq in the primary path.
+Check each model's current terms before redistribution or commercial
+deployment; in particular, the listed MMS-TTS model cards specify
+CC-BY-NC 4.0.
 
-| Language | ISO Code | Voice Input (STT) | Text Input | Voice Output (TTS) | Technical Notes |
-| :--- | :---: | :---: | :---: | :---: | :--- |
-| **Hindi** | `hi` | ✅ Yes | ✅ Yes | ✅ Yes | Full pipeline with Whisper large-v3 + Meta MMS-TTS Hindi |
-| **Bengali** | `bn` | ✅ Yes | ✅ Yes | ✅ Yes | Full pipeline with Whisper large-v3 + Meta MMS-TTS Bengali |
-| **Odia** | `or` | ⚠️ Best-effort | ✅ **Yes** | ✅ **Yes** | **Honest disclosure:** Whisper has no official Odia model. Odia text input is natively answered and spoken aloud via `facebook/mms-tts-ory`. |
-| **English** | `en` | ✅ Yes | ✅ Yes | ✅ Yes | Universal fallback for testing and debugging |
+Main technology stack
+Layer Technologies
 
----
+Backend Python, Flask
 
-## ✅ Feature Checklist
+Speech recognition Whisper large-v3, Groq API,
+faster-whisper fallback
 
-- [x] **Single-turn & Multi-turn Voice Pipeline**: Speak in Hindi/Bengali &rarr; receive audio speech reply in the same language.
-- [x] **Language Auto-Detection**: Automatically identifies language from speech (Whisper) or Unicode script heuristics (Devanagari, Bengali, Odia).
-- [x] **Visual Pipeline Stepper**: Live UI indicator tracking `Listen` &rarr; `Whisper` &rarr; `Gemma 4` &rarr; `MMS-TTS`.
-- [x] **Gemma 4 Multimodal Vision**: Take or attach a picture and query it in Hindi or Bengali.
-- [x] **Server-Sent Events (SSE) Streaming**: Low-latency token-by-token streaming in chat bubbles.
-- [x] **Grounded Tools**:
-  - Live weather forecast via Open-Meteo (default Haldia, no API key needed).
-  - Indian Standard Time (IST Asia/Kolkata) via `zoneinfo`.
-  - Grounded FAQ knowledge base (`faq.json`).
-- [x] **Real SQLite Persistence**: `turns` table tracking session history, feeding last 6 turns to LLM.
-- [x] **Offline Resilience**: Progressive Web App with Service Worker (`static/sw.js`) and browser `speechSynthesis` fallback.
-- [x] **Production Hardening**: In-memory token bucket rate limiting per IP, 10MB audio size cap, temp file lifecycle cleanup.
+Language model and vision Gemma 4, Gemini API, google-genai
 
----
+Speech synthesis Meta MMS-TTS, PyTorch, Hugging Face
+Transformers, gTTS fallback
 
-## 🚀 Running Locally
+Database SQLite
 
-### 1. Clone & Set Up Virtual Environment
-```bash
+Streaming Server-Sent Events (SSE)
+
+Weather Open-Meteo
+
+Time Python zoneinfo
+
+Client Mobile-first web client /
+Progressive Web App
+
+Deployment DigitalOcean App Platform, Docker
+💎 How Gemma 4 Is Used
+Gemma 4 handles the application's language understanding, intent
+routing, translation, image understanding, and response generation
+through the official google-genai SDK.
+
+The relevant implementation is primarily in
+`services/llm.py`.
+
+Spoken-style responses --- The system prompt constrains
+responses to 1--3 spoken-style sentences in the target Indic script,
+without Markdown or emojis, to make text-to-speech output more
+natural.
+Model discovery and fallback --- At startup, the application
+checks available models and can fall back from gemma-4-26b-a4b-it
+to gemma-4-31b-it.
+Structured intent routing --- route_intent() extracts JSON
+intents such as time, weather, faq, and chat, along with
+relevant city arguments.
+Translation --- translate() performs direct translation into
+the requested Indic language.
+Image understanding --- reply() resizes uploaded images to a
+maximum 1024 px JPEG and sends them as image parts to Gemma 4.
+Streaming generation --- reply_stream() uses
+client.models.generate_content_stream to stream generated response
+content.
+🛠️ Getting Started
+Prerequisites
+Make sure you have the following installed:
+
+Python
+pip
+Git
+Docker (optional, for containerized execution)
+You will also need API keys for the services configured by the
+application:
+
+GEMINI_API_KEY
+GROQ_API_KEY
+Local Setup
+1. Clone the repository
 git clone https://github.com/Debarun1205/BhashaSandhi.git
 cd BhashaSandhi
+The clone URL and directory above refer to the repository's current
+GitHub name. If the repository is renamed to BhashaSakti, update the
+URL and directory accordingly.
 
+2. Create and activate a virtual environment
 python -m venv venv
-# Linux / macOS:
+Linux / macOS
+
 source venv/bin/activate
-# Windows:
+Windows
+
 .\venv\Scripts\activate
-```
-
-### 2. Install Dependencies
-```bash
+3. Install dependencies
 pip install -r requirements.txt
-```
-
-### 3. Configure `.env`
-```bash
+4. Configure environment variables
 cp .env.example .env
-# Edit .env and insert your GEMINI_API_KEY and GROQ_API_KEY
-```
+On Windows PowerShell, use:
 
-### 4. Run the Server
-```bash
+Copy-Item .env.example .env
+Add your API keys to .env:
+
+GEMINI_API_KEY=your_gemini_api_key
+GROQ_API_KEY=your_groq_api_key
+5. Start the application
 python app.py
-```
-Open `http://localhost:8080` in your web browser.
+Open the application at:
 
----
+http://localhost:8080
+🐳 Run with Docker
+Build the Docker image:
 
-## 🐳 Running with Docker
+docker build -t bhashasakti .
+Run the container:
 
-```bash
-# Build Docker image (pre-caches MMS models)
-docker build -t bhashasandhi .
+docker run -p 8080:8080 --env-file .env bhashasakti
+The application will be available at http://localhost:8080.
 
-# Run container on port 8080
-docker run -p 8080:8080 --env-file .env bhashasandhi
-```
+🧪 Testing
+Run the API smoke tests:
 
----
-
-## 🧪 Testing
-
-We provide full smoke tests and an automated round-trip voice test:
-
-```bash
-# Run pytest smoke tests
 pytest tests/test_api.py -v
+Run the automated speech-recognition and speech-synthesis round-trip
+test:
 
-# Run the automated STT <-> TTS agreement roundtrip test (no human voice needed)
 python tests/roundtrip.py
-```
+The round-trip test is designed to check STT and TTS agreement without
+requiring a human voice recording.
 
----
+📡 API Reference
+Method Endpoint Request Response
 
-## 📡 API Reference
+GET /health None Health status,
+project name,
+stack details
 
-| Method | Endpoint | Request Payload | Response |
-| :--- | :--- | :--- | :--- |
-| `GET` | `/health` | None | `{"status": "ok", "project": "BhashaSandhi", "stack": "flask", ...}` |
-| `GET` | `/api/languages` | None | Array of `{code, name, native, stt: bool, tts: bool}` |
-| `POST` | `/api/transcribe` | Multipart: `audio` (file), optional `language` | `{"text": "...", "language": "hi", "backend": "groq", "duration_ms": 140}` |
-| `POST` | `/api/translate` | JSON: `{"text": "...", "target": "hi", "source": "en"}` | `{"text": "...", "source": "en", "target": "hi"}` |
-| `POST` | `/api/speak` | JSON: `{"text": "...", "lang": "hi"}` | Binary `audio/wav` with `X-TTS-Backend` header |
-| `POST` | `/api/chat` | Multipart: `audio` or `text`, optional `image`, `lang`, `session_id` | JSON with transcript, reply text, base64 audio, and timing breakdown |
-| `POST` | `/api/chat/stream` | Multipart: same as `/api/chat` | Server-Sent Events: `transcript`, `token`, `audio`, `done` |
-| `GET` | `/api/history` | Query params: `session_id`, `limit` | Last N turns from SQLite |
+GET /api/languages None Array of language
+objects: code,
+name, native,
+stt, tts
 
----
+POST /api/transcribe Multipart: audio file; optional language Transcript,
+detected
+language,
+backend, duration
 
-## ⚠️ Known Limitations & Future Work
+POST /api/translate JSON: Translated text
+{"text":"...","target":"hi","source":"en"} and language
+codes
 
-1. **Odia ASR**: Whisper does not officially support Odia speech recognition. We support Odia text input and provide high-fidelity Odia voice synthesis via `facebook/mms-tts-ory`. Future work includes fine-tuning Whisper on the Odia Mozilla Common Voice dataset.
-2. **Model Footprint on Free Clouds**: Meta MMS-TTS models require ~1.5 GB RAM. While lightweight compared to cloud LLMs, deployment requires at least a 2 GB RAM node.
-3. **Database Ephemerality**: SQLite database resets on ephemeral container hosts (DigitalOcean App Platform redeploys). Production migration would target managed PostgreSQL or persistent volumes.
+POST /api/speak JSON: {"text":"...","lang":"hi"} WAV audio with
+X-TTS-Backend
+header
 
----
+POST /api/chat Multipart: audio or text; optional Transcript, reply
+image, lang, session_id text, base64
+audio, timing
+details
 
-## 👥 Team Members & Credits
+POST /api/chat/stream Multipart: same fields as /api/chat SSE events:
+transcript,
+token, audio,
+done
 
-- **Team Name:** Team J
-- **Hackathon:** Hack4Haldia'26
-- **License:** [MIT License](LICENSE)
+GET /api/history Query parameters: session_id, limit Latest N
+conversation
+turns from SQLite
+For exact request and response schemas, refer to the backend
+implementation and API tests.
 
-*Acknowledgements: Thanks to DigitalOcean, Google DeepMind (Gemma), Meta AI (MMS), and OpenAI (Whisper) for open-access AI weights.*
-#   B h a s h a S a k t i -  
- #   B h a s h a S a k t i -  
- 
+⚠️ Known Limitations and Future Work
+Odia speech recognition --- Whisper does not officially support
+Odia. The current implementation supports Odia text input and speech
+output. A future improvement is fine-tuning or adapting an ASR model
+using the Odia Mozilla Common Voice dataset.
+Memory requirements --- Meta MMS-TTS models require
+approximately 1.5 GB of RAM. Deployment should use a node with at
+least 2 GB RAM, according to the current project configuration.
+Database persistence --- SQLite data may be lost when deployed
+on an ephemeral container filesystem. A production deployment should
+use persistent volumes or migrate to managed PostgreSQL.
+Hosted model dependencies --- The primary speech-recognition and
+language-model paths depend on external API availability and valid
+API credentials.
+👥 Team and Credits
+Team: Team J
+Hackathon: Hack4Haldia '26
+License: MIT
+Acknowledgements
+Thanks to the teams and communities behind DigitalOcean, Google DeepMind
+(Gemma), Meta AI (MMS), and OpenAI (Whisper) for their models, tools,
+and infrastructure.
+
+📄 License
+This project is licensed under the MIT License.
+
+::: {align="center"} **BhashaSakti --- Bringing AI conversations closer to every language.** :::
