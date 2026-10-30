@@ -1,0 +1,42 @@
+[
+  {
+    "id": "about_project",
+    "keywords": ["project", "what is this", "about", "kya hai", "ki eta", "bhashasandhi", "assistant", "क्या है", "কী এই"],
+    "answer": {
+      "en": "BhashaSandhi is a fast, multimodal multilingual voice assistant built for Hack4Haldia'26. It supports voice and text interactions in Hindi, Bengali, Odia, and English using open-weight models.",
+      "hi": "भाषासंधि Hack4Haldia'26 के लिए बनाया गया एक बहुभाषी वॉयस असिस्टेंट है, जो हिंदी, बंगाली, ओडिया और अंग्रेजी का समर्थन करता है।",
+      "bn": "ভাষাসন্ধি Hack4Haldia'26 এর জন্য তৈরি একটি বহুভাষিক ভয়েস অ্যাসিস্ট্যান্ট, যা হিন্দি, বাংলা, ওড়িয়া এবং ইংরেজি সমর্থন করে।",
+      "or": "ଭାଷାସନ୍ଧି Hack4Haldia'26 ପାଇଁ ନିର୍ମିତ ଏକ ବହୁଭାଷୀ ଭଏସ୍ ସହାୟକ, ଯାହା ହିନ୍ଦୀ, ବଙ୍ଗାଳୀ, ଓଡ଼ିଆ ଏବଂ ଇଂରାଜୀ ସମର୍ଥନ କରେ।"
+    }
+  },
+  {
+    "id": "models_used",
+    "keywords": ["model", "models", "whisper", "gemma", "mms", "ai", "open-source", "मॉडल", "মডেল"],
+    "answer": {
+      "en": "We use OpenAI Whisper large-v3 for speech-to-text, Google Gemma 4 (gemma-4-26b-a4b-it / 31b-it) via Gemini API for understanding and vision, and Meta MMS-TTS (VitsModel) for Hindi, Bengali, and Odia voice synthesis.",
+      "hi": "हम वाक् पहचान के लिए Whisper large-v3, बुद्धिमत्ता और दृष्टि के लिए Gemma 4, और वाणी संश्लेषण के लिए Meta MMS-TTS का उपयोग करते हैं।",
+      "bn": "আমরা স্পিচ-টু-টেক্সটের জন্য Whisper large-v3, বোধগম্যতা ও ভিশনের জন্য Gemma 4, এবং ভয়েস সিন্থেসিসের জন্য Meta MMS-TTS ব্যবহার করি।",
+      "or": "ଆମେ ସ୍ପିଚ୍-ଟୁ-ଟେକ୍ସଟ୍ ପାଇଁ Whisper large-v3, ବୁଦ୍ଧିମତା ପାଇଁ Gemma 4, ଏବଂ କଣ୍ଠସ୍ୱର ପାଇଁ Meta MMS-TTS ବ୍ୟବହାର କରୁ।"
+    }
+  },
+  {
+    "id": "languages_supported",
+    "keywords": ["language", "languages", "hindi", "bengali", "odia", "bhasha", "भाषा", "ভাষা", "ଭାଷା"],
+    "answer": {
+      "en": "BhashaSandhi supports Hindi (voice in, voice out), Bengali (voice in, voice out), Odia (text in, voice out via MMS-TTS ory), and English as a universal fallback.",
+      "hi": "भाषासंधि हिंदी (आवाज़), बंगाली (आवाज़), ओडिया (टेक्स्ट इनपुट, आवाज़ आउटपुट), और अंग्रेजी का समर्थन करती है।",
+      "bn": "ভাষাসন্ধি হিন্দি (ভয়েস), বাংলা (ভয়েস), ওড়িয়া (টেক্সট ইনপুট, ভয়েস আউটপুট), এবং ইংরেজি সমর্থন করে।",
+      "or": "ଭାଷାସନ୍ଧି ହିନ୍ଦୀ, ବଙ୍ଗାଳୀ, ଓଡ଼ିଆ ଏବଂ ଇଂରାଜୀ ଭାଷା ସମର୍ଥନ କରେ।"
+    }
+  },
+  {
+    "id": "team_and_event",
+    "keywords": ["team", "who built", "hackathon", "hack4haldia", "creators", "टीम", "দল", "କିଏ ତିଆରି"],
+    "answer": {
+      "en": "BhashaSandhi was built by Team J for the Hack4Haldia'26 Hackathon, competing for Best Open-Source AI Project and Best Use of Gemma 4.",
+      "hi": "भाषासंधि को Hack4Haldia'26 हैकथॉन के लिए टीम J द्वारा विकसित किया गया है।",
+      "bn": "ভাষাসন্ধি Hack4Haldia'26 হ্যাকাথনের জন্য টিম J দ্বারা তৈরি করা হয়েছে।",
+      "or": "ଭାଷାସନ୍ଧି Hack4Haldia'26 ହାକାଥନ୍ ପାଇଁ ଟିମ୍ J ଦ୍ୱାରା ନିର୍ମିତ ହୋଇଛି।"
+    }
+  }
+]

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BhashaSandhi — Indic Multilingual Voice Assistant</title>
+  <meta name="description" content="End-to-end open-weight multilingual voice assistant for Hindi, Bengali, and Odia powered by Whisper large-v3, Gemma 4, and Meta MMS-TTS.">
+  <meta name="theme-color" content="#0a0f1d">
+
+  <!-- Google Fonts: Inter and Noto Sans for Indic scripts (Devanagari, Bengali, Oriya) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Oriya:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="manifest" href="/static/manifest.json">
+</head>
+<body class="dark-theme">
+  <!-- Offline Alert Banner -->
+  <div id="offline-banner" class="offline-banner hidden" role="alert">
+    <span class="offline-icon">⚠️</span>
+    <span id="offline-msg">You appear to be offline. Local playback active.</span>
+  </div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo-badge">
+          <span>BS</span>
+          <div class="glow-effect"></div>
+        </div>
+        <div>
+          <div class="brand-title-wrap">
+            <h1 class="brand-title">BhashaSandhi</h1>
+            <span class="badge-sub">Team J</span>
+          </div>
+          <p class="brand-sub">Indic Multilingual Voice Assistant &bull; Hack4Haldia'26</p>
+        </div>
+      </div>
+      <div class="header-status">
+        <span id="connection-indicator" class="dot-online" title="System Online"></span>
+        <button id="inspect-btn" class="icon-btn" title="Inspect Model Architecture & Prize Qualifications" aria-label="Architecture Inspector">📊</button>
+        <button id="settings-btn" class="icon-btn" title="API Settings (Gemini / Groq)" aria-label="API Settings">⚙️</button>
+        <button id="clear-btn" class="icon-btn" title="Clear Chat History" aria-label="Clear Chat History">🗑️</button>
+      </div>
+    </header>
+
+    <!-- Hackathon Prize Qualification Trackers -->
+    <div class="prize-ribbon">
+      <div class="prize-pill prize-do" id="open-source-pill" title="DigitalOcean Open-Source AI Project Track">
+        <span class="prize-dot dot-do"></span>
+        <span class="prize-text"><strong>DigitalOcean:</strong> Best Open-Source AI</span>
+      </div>
+      <div class="prize-pill prize-gemma" id="gemma-pill" title="Best Use of Gemma 4 Track">
+        <span class="prize-dot dot-gemma"></span>
+        <span class="prize-text"><strong>Gemma 4:</strong> Multimodal AI</span>
+      </div>
+    </div>
+
+    <!-- Language Selector Chips -->
+    <nav class="lang-bar" aria-label="Language selection">
+      <div class="chips-container" role="radiogroup" aria-label="Target language">
+        <button class="chip active" data-lang="auto" aria-checked="true" role="radio">Auto-detect ✨</button>
+        <button class="chip" data-lang="hi" aria-checked="false" role="radio">हिन्दी</button>
+        <button class="chip" data-lang="bn" aria-checked="false" role="radio">বাংলা</button>
+        <button class="chip" data-lang="or" aria-checked="false" role="radio">ଓଡ଼ିଆ <span class="tag-text-only">TTS</span></button>
+        <button class="chip" data-lang="en" aria-checked="false" role="radio">English</button>
+      </div>
+    </nav>
+
+    <!-- Pipeline Visual Stepper -->
+    <section class="stepper-section" aria-label="Pipeline execution status">
+      <div class="pipeline-stepper" id="pipeline-stepper">
+        <div class="step" data-step="listen">
+          <div class="step-circle"><span class="step-icon">🎙️</span></div>
+          <span class="step-label">Listen</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" data-step="transcribe">
+          <div class="step-circle"><span class="step-icon">📝</span></div>
+          <span class="step-label">Whisper</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" data-step="think">
+          <div class="step-circle"><span class="step-icon">🧠</span></div>
+          <span class="step-label">Gemma 4</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" data-step="speak">
+          <div class="step-circle"><span class="step-icon">🔊</span></div>
+          <span class="step-label">MMS-TTS</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chat Messages Window -->
+    <main class="chat-viewport" id="chat-viewport" role="log" aria-live="polite">
+      <!-- Welcome message -->
+      <div class="message assistant">
+        <div class="bubble">
+          <div class="bubble-header">
+            <span class="sender-name">BhashaSandhi</span>
+            <span class="model-tag">Gemma 4 &bull; MMS</span>
+          </div>
+          <div class="bubble-content" id="welcome-text">
+            नमस्ते! আমি আপনাকে কীভাবে সাহায্য করতে পারি? (Speak into the mic, select a sample prompt, or attach an image below!)
+          </div>
+          <div class="suggested-prompts" id="suggested-prompts">
+            <button class="prompt-chip" data-text="আজ আবহাওয়া কেমন আছে?">🌤️ আজ আবহাওয়া?</button>
+            <button class="prompt-chip" data-text="এখন সময় কত?">⏰ এখন সময়?</button>
+            <button class="prompt-chip" data-text="Help me build an end-to-end RAG pipeline">🚀 Build RAG Pipeline</button>
+            <button class="prompt-chip" data-text="ଭାଷାସନ୍ଧି କ'ଣ?">💡 ଭାଷାସନ୍ଧି କ'ଣ?</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Image Attachment Preview Bar -->
+    <div id="image-preview-container" class="image-preview-container hidden">
+      <div class="preview-wrapper">
+        <img id="image-preview" src="" alt="Uploaded image preview" />
+        <button id="remove-image-btn" class="remove-btn" aria-label="Remove image">&times;</button>
+      </div>
+      <div class="image-tip">
+        <strong>📷 Multimodal Active:</strong> Gemma 4 will inspect this image with your query.
+      </div>
+    </div>
+
+    <!-- Active Audio Waveform / Live Level Meter -->
+    <div id="audio-visualizer-container" class="visualizer-container hidden">
+      <div class="visualizer-bars" id="visualizer-bars">
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div>
+      </div>
+      <div class="rec-meta">
+        <span class="rec-dot"></span>
+        <span id="recording-timer" class="rec-time">00:00</span>
+      </div>
+    </div>
+
+    <!-- Interaction Dock -->
+    <footer class="interaction-dock">
+      <!-- Voice Section -->
+      <div class="dock-voice">
+        <button id="mic-btn" class="mic-button" aria-label="Push to talk or tap to record" title="Tap to record voice">
+          <div class="mic-inner">
+            <svg class="mic-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+              <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+          </div>
+          <span class="pulse-ring"></span>
+        </button>
+      </div>
+
+      <!-- Text Input & Attachment Controls -->
+      <form id="text-form" class="dock-input-form" onsubmit="return false;">
+        <label for="image-upload" class="icon-btn tool-btn" title="Attach Photo for Gemma 4 Vision" aria-label="Attach Photo">
+          📷
+          <input type="file" id="image-upload" accept="image/*" style="display:none;" />
+        </label>
+        <input type="text" id="text-input" class="text-input" placeholder="Type or speak in Hindi, Bengali, Odia..." aria-label="Text message input" />
+        <button type="submit" id="send-btn" class="icon-btn send-btn" aria-label="Send message">➔</button>
+      </form>
+
+      <!-- Verified Open-Weight Model Badges -->
+      <div class="powered-badges">
+        <span class="badge-label">Verified Open-Weight Architecture:</span>
+        <a href="https://huggingface.co/openai/whisper-large-v3" target="_blank" rel="noopener noreferrer" class="model-badge">
+          <span class="badge-dot dot-groq"></span> STT: Whisper large-v3
+        </a>
+        <a href="https://ai.google.dev/gemma" target="_blank" rel="noopener noreferrer" class="model-badge">
+          <span class="badge-dot dot-gemma"></span> LLM: Gemma 4
+        </a>
+        <a href="https://huggingface.co/facebook/mms-tts-hin" target="_blank" rel="noopener noreferrer" class="model-badge">
+          <span class="badge-dot dot-mms"></span> TTS: Meta MMS
+        </a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Prize Qualification & Architecture Inspector Modal -->
+  <div id="inspector-modal" class="modal-overlay hidden">
+    <div class="modal-card modal-wide">
+      <div class="modal-header">
+        <h3>🏆 Hack4Haldia'26 Prize Qualifications</h3>
+        <button id="close-inspector-btn" class="icon-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Prize 1: DigitalOcean -->
+        <div class="inspector-card">
+          <div class="card-badge badge-do">DigitalOcean &bull; Best Open-Source AI Project</div>
+          <h4>100% Open-Weight End-to-End Pipeline</h4>
+          <p>Every core stage of BhashaSandhi is powered by open-source or open-weight AI models:</p>
+          <ul>
+            <li><strong>STT:</strong> OpenAI Whisper large-v3 (1.55B params, MIT license) running on cloud / local faster-whisper.</li>
+            <li><strong>TTS:</strong> Meta MMS-TTS (VITS, CC-BY-NC 4.0) with native acoustic models for Hindi, Bengali, and Odia.</li>
+            <li><strong>Harness:</strong> Custom Flask model harness containerized with PyTorch on <strong>DigitalOcean App Platform</strong>.</li>
+            <li><strong>License:</strong> Full OSI-approved MIT License at repository root.</li>
+          </ul>
+        </div>
+
+        <!-- Prize 2: Gemma 4 -->
+        <div class="inspector-card">
+          <div class="card-badge badge-gemma">Google &bull; Best Use of Gemma 4</div>
+          <h4>Multimodal Vision & Indic Language Reasoning</h4>
+          <p>Powered by Google's Gemma 4 (<code>gemma-4-26b-a4b-it</code> / <code>gemma-4-31b-it</code>) accessed through the Gemini API:</p>
+          <ul>
+            <li><strong>Multimodal Experience:</strong> Upload or snap photographs; Gemma 4 analyzes pixel inputs and explains visual content in spoken Indic scripts.</li>
+            <li><strong>Focused AI Tool:</strong> Tool grounding connecting live Open-Meteo weather and Asia/Kolkata IST time directly to spoken sentences.</li>
+            <li><strong>Rapid Prototyping:</strong> Dynamic model discovery, streaming token generation via Server-Sent Events, and thought filtering.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- API Keys Settings Modal -->
+  <div id="settings-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>API Keys & Configuration</h3>
+        <button id="close-modal-btn" class="icon-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label for="gemini-key-input">Gemini API Key (Gemma 4):</label>
+        <input type="password" id="gemini-key-input" placeholder="AIzaSy..." class="modal-input" />
+        <small class="hint-text">Required for live Gemma 4 reasoning, multimodal vision, and translation.</small>
+
+        <label for="groq-key-input" style="margin-top: 12px; display: block;">Groq API Key (Whisper large-v3):</label>
+        <input type="password" id="groq-key-input" placeholder="gsk_..." class="modal-input" />
+        <small class="hint-text">Used for high-speed cloud speech-to-text.</small>
+
+        <div id="modal-status" class="modal-status"></div>
+      </div>
+      <div class="modal-footer">
+        <button id="save-config-btn" class="btn-primary">Save Configuration</button>
+      </div>
+    </div>
+  </div>
+
+  <audio id="tts-audio-player" preload="auto" style="display:none;"></audio>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
